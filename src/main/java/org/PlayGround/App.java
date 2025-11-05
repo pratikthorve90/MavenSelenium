@@ -1,7 +1,5 @@
 package org.PlayGround;
 
-import Polymorphism.User;
-
 /**
  * Hello world!
  *

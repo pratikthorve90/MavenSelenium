@@ -1,7 +1,5 @@
 package DesignPatterns.Builder;
 
-import Polymorphism.User;
-
 public class Client {
 
     public static void main(String[] args) {

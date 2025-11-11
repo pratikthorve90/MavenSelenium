@@ -1,11 +1,10 @@
-package LLD;
+package LLD.LLD_TIC_TAC_TOE;
 
 import LLD.LLD_TIC_TAC_TOE.controllers.GameController;
 import LLD.LLD_TIC_TAC_TOE.models.*;
 import LLD.LLD_TIC_TAC_TOE.strategies.winningStrategy.OrderOneColumnWinningStrategy;
 import LLD.LLD_TIC_TAC_TOE.strategies.winningStrategy.OrderOneDiagonalWinningStrategy;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 

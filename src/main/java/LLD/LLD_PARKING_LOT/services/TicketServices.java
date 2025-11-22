@@ -2,8 +2,10 @@ package LLD.LLD_PARKING_LOT.services;
 
 import LLD.LLD_PARKING_LOT.enums.Vehicle_Type;
 import LLD.LLD_PARKING_LOT.exceptions.InvalidGateException;
+import LLD.LLD_PARKING_LOT.exceptions.NoSpotAvailableException;
 import LLD.LLD_PARKING_LOT.models.*;
 import LLD.LLD_PARKING_LOT.repositories.GateRepository;
+import LLD.LLD_PARKING_LOT.repositories.ParkingLotRepository;
 import LLD.LLD_PARKING_LOT.repositories.TicketRepository;
 import LLD.LLD_PARKING_LOT.repositories.VehicleRepository;
 import LLD.LLD_PARKING_LOT.strategy.spotassignmentstrategy.SpotAssignmentStrategy;
@@ -18,15 +20,17 @@ public class TicketServices {
     private VehicleRepository vehicleRepository;
     private SpotAssignmentStrategy spotAssignmentStrategy;
     private TicketRepository ticketRepository;
+    private ParkingLotRepository parkingLotRepository;
 
-    public TicketServices(GateRepository gateRepository, VehicleRepository vehicleRepository, SpotAssignmentStrategy spotAssignmentStrategy, TicketRepository ticketRepository) {
+    public TicketServices(GateRepository gateRepository, VehicleRepository vehicleRepository, SpotAssignmentStrategy spotAssignmentStrategy, TicketRepository ticketRepository, ParkingLotRepository parkingLotRepository) {
         this.gateRepository = gateRepository;
         this.vehicleRepository = vehicleRepository;
         this.spotAssignmentStrategy =  spotAssignmentStrategy;
         this.ticketRepository = ticketRepository;
+        this.parkingLotRepository = parkingLotRepository;
     }
 
-    public Ticket generateTicket(String vehicleNumber, Vehicle_Type vehicleType, Long gateId) throws InvalidGateException {
+    public Ticket generateTicket(String vehicleNumber, Vehicle_Type vehicleType, Long gateId) throws InvalidGateException, NoSpotAvailableException {
 
         Ticket ticket = new Ticket();
         ticket.setEntry_date(new Date());
@@ -35,7 +39,7 @@ public class TicketServices {
         Optional<Gate> gateOptional = gateRepository.findGateById(gateId);
 
         if(gateOptional.isEmpty()){
-            throw new InvalidGateException("Gate not found f ro id " + gateId);
+            throw new InvalidGateException("Gate not found for id " + gateId);
         }
 
         Gate gate = gateOptional.get();
@@ -57,8 +61,15 @@ public class TicketServices {
         }
         ticket.setVehicle(vehicle);
 
-        ParkingSpot parkingSpot = spotAssignmentStrategy.findSpot();
-        ticket.setSpot(parkingSpot);
+        ParkingLot parkingLot = parkingLotRepository.getParkingLot(gate);
+
+        Optional<ParkingSpot> parkingSpotOptional = spotAssignmentStrategy.findSpot(vehicleType,parkingLot,gate);
+        if(parkingSpotOptional.isEmpty()){
+            throw new NoSpotAvailableException("No spots available");
+        }
+        else {
+            ticket.setSpot(parkingSpotOptional.get());
+        }
 
         return ticketRepository.saveTicket(ticket); // return after save in DB , this will also have ID attribute return from DB table ID
     }
